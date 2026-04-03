@@ -49,7 +49,13 @@ public class Hub extends BaseUserEntity {
 
     public void update(String name, Short capacity, Address address) {
         if (name != null) this.name = name;
-        if (capacity != null) this.capacity = capacity;
+        if (capacity != null) {
+            if (capacity < this.currentLoad) {
+                throw new IllegalArgumentException(
+                        "capacity는 현재 currentLoad(" + this.currentLoad + ")보다 작을 수 없습니다.");
+            }
+            this.capacity = capacity;
+        }
         if (address != null) this.address = address;
     }
 
