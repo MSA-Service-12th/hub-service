@@ -10,7 +10,6 @@ import com.loopang.hub_service.presentation.hub.dto.request.HubUpdateRequest;
 import com.loopang.hub_service.presentation.hub.dto.response.HubDeleteResponse;
 import com.loopang.hub_service.presentation.hub.dto.response.HubResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -47,11 +46,7 @@ public class HubService {
                 .address(address)
                 .build();
 
-        try {
-            return HubResponse.from(hubRepository.save(hub));
-        } catch (DataIntegrityViolationException e) {
-            throw new HubNameDuplicateException(request.getName());
-        }
+        return HubResponse.from(hubRepository.save(hub));
     }
 
     public HubResponse getHub(UUID hubId) {
@@ -66,6 +61,11 @@ public class HubService {
     @Transactional
     public HubResponse updateHub(UUID hubId, HubUpdateRequest request) {
         Hub hub = findHubById(hubId);
+
+        if (request.getName() != null && !request.getName().equals(hub.getName())
+                && hubRepository.existsByName(request.getName())) {
+            throw new HubNameDuplicateException(request.getName());
+        }
 
         Address address = null;
         if (request.getFullAddress() != null) {

@@ -27,7 +27,7 @@ public class Hub extends BaseUserEntity {
     @Version
     private int version;
 
-    @Column(nullable = false, length = 50, unique = true)
+    @Column(nullable = false, length = 50)
     private String name;
 
     @Column(nullable = false)
@@ -41,6 +41,15 @@ public class Hub extends BaseUserEntity {
 
     @Builder
     public Hub(String name, Short capacity, Address address) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("name은 비어 있을 수 없습니다.");
+        }
+        if (capacity == null || capacity < 0) {
+            throw new IllegalArgumentException("capacity는 0 이상이어야 합니다.");
+        }
+        if (address == null) {
+            throw new IllegalArgumentException("address는 필수입니다.");
+        }
         this.name = name;
         this.capacity = capacity;
         this.currentLoad = (short) 0;
@@ -48,8 +57,16 @@ public class Hub extends BaseUserEntity {
     }
 
     public void update(String name, Short capacity, Address address) {
-        if (name != null) this.name = name;
+        if (name != null) {
+            if (name.isBlank()) {
+                throw new IllegalArgumentException("name은 비어 있을 수 없습니다.");
+            }
+            this.name = name;
+        }
         if (capacity != null) {
+            if (capacity < 0) {
+                throw new IllegalArgumentException("capacity는 0 이상이어야 합니다.");
+            }
             if (capacity < this.currentLoad) {
                 throw new IllegalArgumentException(
                         "capacity는 현재 currentLoad(" + this.currentLoad + ")보다 작을 수 없습니다.");
