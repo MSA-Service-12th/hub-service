@@ -42,7 +42,7 @@ public class HubController {
 
     @PutMapping("/{hubId}")
     public CommonResponse<HubResponse> updateHub(@PathVariable UUID hubId,
-                                                  @RequestBody HubUpdateRequest request) {
+                                                  @Valid @RequestBody HubUpdateRequest request) {
         return CommonResponse.success(hubService.updateHub(hubId, request), "허브가 수정되었습니다.");
     }
 

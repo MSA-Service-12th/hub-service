@@ -78,7 +78,7 @@ loopang MSA 프로젝트의 허브 + 허브재고 도메인 서비스.
 
 의존성 방향: `presentation → application → domain ← infrastructure`
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  presentation (Controller, DTO)             │  ← 외부 요청 처리
 │    ↓                                        │
@@ -99,7 +99,7 @@ loopang MSA 프로젝트의 허브 + 허브재고 도메인 서비스.
 
 ## 패키지 구조
 
-```
+```text
 com.loopang.hub_service
 ├── application/
 │   ├── hub/

@@ -9,6 +9,7 @@ import com.loopang.hub_service.presentation.hub.dto.request.HubCreateRequest;
 import com.loopang.hub_service.presentation.hub.dto.request.HubUpdateRequest;
 import com.loopang.hub_service.presentation.hub.dto.response.HubResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -45,7 +46,11 @@ public class HubService {
                 .address(address)
                 .build();
 
-        return HubResponse.from(hubRepository.save(hub));
+        try {
+            return HubResponse.from(hubRepository.save(hub));
+        } catch (DataIntegrityViolationException e) {
+            throw new HubNameDuplicateException(request.getName());
+        }
     }
 
     public HubResponse getHub(UUID hubId) {
@@ -81,6 +86,7 @@ public class HubService {
     @Transactional
     public void deleteHub(UUID hubId) {
         Hub hub = findHubById(hubId);
+        // TODO: SecurityUtil 구현 후 현재 유저 ID 전달 — hub.delete(currentUserId)
         hub.delete(null);
     }
 

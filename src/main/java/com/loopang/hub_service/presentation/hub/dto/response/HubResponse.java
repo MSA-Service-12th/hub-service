@@ -28,19 +28,20 @@ public class HubResponse {
     private LocalDateTime updatedAt;
 
     public static HubResponse from(Hub hub) {
+        var address = hub.getAddress();
         return HubResponse.builder()
                 .hubId(hub.getId())
                 .name(hub.getName())
                 .capacity(hub.getCapacity())
                 .currentLoad(hub.getCurrentLoad())
                 .status(hub.getStatus().getDescription())
-                .cityDo(hub.getAddress().getCityDo())
-                .guGun(hub.getAddress().getGuGun())
-                .dongDoro(hub.getAddress().getDongDoro())
-                .detailAddress(hub.getAddress().getDetailAddress())
-                .fullAddress(hub.getAddress().getFullAddress())
-                .latitude(hub.getAddress().getLatitude())
-                .longitude(hub.getAddress().getLongitude())
+                .cityDo(address != null ? address.getCityDo() : null)
+                .guGun(address != null ? address.getGuGun() : null)
+                .dongDoro(address != null ? address.getDongDoro() : null)
+                .detailAddress(address != null ? address.getDetailAddress() : null)
+                .fullAddress(address != null ? address.getFullAddress() : null)
+                .latitude(address != null ? address.getLatitude() : null)
+                .longitude(address != null ? address.getLongitude() : null)
                 .createdAt(hub.getCreatedAt())
                 .updatedAt(hub.getUpdatedAt())
                 .build();

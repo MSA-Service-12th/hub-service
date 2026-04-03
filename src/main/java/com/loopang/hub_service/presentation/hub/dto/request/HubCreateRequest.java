@@ -2,6 +2,7 @@ package com.loopang.hub_service.presentation.hub.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 
 @Getter
@@ -11,6 +12,7 @@ public class HubCreateRequest {
     private String name;
 
     @NotNull(message = "용적은 필수입니다.")
+    @Positive(message = "용적은 양수여야 합니다.")
     private Short capacity;
 
     private String cityDo;

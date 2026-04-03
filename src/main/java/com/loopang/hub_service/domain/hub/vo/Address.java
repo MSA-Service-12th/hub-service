@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 @Embeddable
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -37,12 +39,20 @@ public class Address {
     public Address(String cityDo, String guGun, String dongDoro,
                    String detailAddress, String fullAddress,
                    Double latitude, Double longitude) {
+        this.fullAddress = Objects.requireNonNull(fullAddress, "fullAddress는 필수입니다.");
+        this.latitude = Objects.requireNonNull(latitude, "latitude는 필수입니다.");
+        this.longitude = Objects.requireNonNull(longitude, "longitude는 필수입니다.");
+
+        if (this.latitude < -90 || this.latitude > 90) {
+            throw new IllegalArgumentException("latitude 범위는 -90~90이어야 합니다.");
+        }
+        if (this.longitude < -180 || this.longitude > 180) {
+            throw new IllegalArgumentException("longitude 범위는 -180~180이어야 합니다.");
+        }
+
         this.cityDo = cityDo;
         this.guGun = guGun;
         this.dongDoro = dongDoro;
         this.detailAddress = detailAddress;
-        this.fullAddress = fullAddress;
-        this.latitude = latitude;
-        this.longitude = longitude;
     }
 }
