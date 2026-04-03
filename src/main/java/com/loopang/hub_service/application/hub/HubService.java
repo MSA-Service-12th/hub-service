@@ -7,6 +7,7 @@ import com.loopang.hub_service.domain.hub.repository.HubRepository;
 import com.loopang.hub_service.domain.hub.vo.Address;
 import com.loopang.hub_service.presentation.hub.dto.request.HubCreateRequest;
 import com.loopang.hub_service.presentation.hub.dto.request.HubUpdateRequest;
+import com.loopang.hub_service.presentation.hub.dto.response.HubDeleteResponse;
 import com.loopang.hub_service.presentation.hub.dto.response.HubResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -84,10 +85,11 @@ public class HubService {
     }
 
     @Transactional
-    public void deleteHub(UUID hubId) {
+    public HubDeleteResponse deleteHub(UUID hubId) {
         Hub hub = findHubById(hubId);
         // TODO: SecurityUtil 구현 후 현재 유저 ID 전달 — hub.delete(currentUserId)
         hub.delete(null);
+        return HubDeleteResponse.from(hub);
     }
 
     private Hub findHubById(UUID hubId) {

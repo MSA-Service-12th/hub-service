@@ -5,6 +5,7 @@ import com.loopang.common.response.PageInfo;
 import com.loopang.hub_service.application.hub.HubService;
 import com.loopang.hub_service.presentation.hub.dto.request.HubCreateRequest;
 import com.loopang.hub_service.presentation.hub.dto.request.HubUpdateRequest;
+import com.loopang.hub_service.presentation.hub.dto.response.HubDeleteResponse;
 import com.loopang.hub_service.presentation.hub.dto.response.HubResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -47,8 +48,7 @@ public class HubController {
     }
 
     @DeleteMapping("/{hubId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteHub(@PathVariable UUID hubId) {
-        hubService.deleteHub(hubId);
+    public CommonResponse<HubDeleteResponse> deleteHub(@PathVariable UUID hubId) {
+        return CommonResponse.success(hubService.deleteHub(hubId), "허브 삭제에 성공했습니다.");
     }
 }
