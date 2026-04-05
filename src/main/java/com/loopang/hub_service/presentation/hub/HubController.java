@@ -1,5 +1,6 @@
 package com.loopang.hub_service.presentation.hub;
 
+import com.loopang.common.exception.ForbiddenException;
 import com.loopang.common.response.CommonResponse;
 import com.loopang.common.response.PageInfo;
 import com.loopang.hub_service.application.hub.HubService;
@@ -26,7 +27,10 @@ public class HubController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CommonResponse<HubResponse> createHub(@Valid @RequestBody HubCreateRequest request) {
+    public CommonResponse<HubResponse> createHub(
+            @RequestHeader("X-User-Role") String userRole,
+            @Valid @RequestBody HubCreateRequest request) {
+        checkMasterOrHub(userRole);
         return CommonResponse.success(hubService.createHub(request), "허브가 생성되었습니다.");
     }
 
@@ -42,13 +46,25 @@ public class HubController {
     }
 
     @PutMapping("/{hubId}")
-    public CommonResponse<HubResponse> updateHub(@PathVariable UUID hubId,
-                                                  @Valid @RequestBody HubUpdateRequest request) {
+    public CommonResponse<HubResponse> updateHub(
+            @PathVariable UUID hubId,
+            @RequestHeader("X-User-Role") String userRole,
+            @Valid @RequestBody HubUpdateRequest request) {
+        checkMasterOrHub(userRole);
         return CommonResponse.success(hubService.updateHub(hubId, request), "허브가 수정되었습니다.");
     }
 
     @DeleteMapping("/{hubId}")
-    public CommonResponse<HubDeleteResponse> deleteHub(@PathVariable UUID hubId) {
+    public CommonResponse<HubDeleteResponse> deleteHub(
+            @PathVariable UUID hubId,
+            @RequestHeader("X-User-Role") String userRole) {
+        checkMasterOrHub(userRole);
         return CommonResponse.success(hubService.deleteHub(hubId), "허브 삭제에 성공했습니다.");
+    }
+
+    private void checkMasterOrHub(String userRole) {
+        if (!"ROLE_MASTER".equals(userRole) && !"ROLE_HUB".equals(userRole)) {
+            throw new ForbiddenException("마스터 관리자 또는 허브 관리자만 수행할 수 있는 작업입니다.");
+        }
     }
 }
