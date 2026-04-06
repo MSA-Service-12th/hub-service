@@ -38,6 +38,13 @@ eureka:
 server:
   port: 18100
 
+topics:
+  order:
+    pending: ${TOPICS_ORDER_PENDING:prod-order-pending}
+  hub:
+    updated: ${TOPICS_HUB_UPDATED:hub-updated-topic}
+    stock-updated: ${TOPICS_HUB_STOCK_UPDATED:prod-hub-stock-updated}
+
 management:
   endpoints:
     web:
