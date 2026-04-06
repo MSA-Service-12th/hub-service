@@ -1,5 +1,6 @@
 package com.loopang.hub_service.application.hub;
 
+import com.loopang.hub_service.domain.event.HubEvents;
 import com.loopang.hub_service.domain.hub.entity.Hub;
 import com.loopang.hub_service.domain.hub.exception.HubNameDuplicateException;
 import com.loopang.hub_service.domain.hub.exception.HubNotFoundException;
@@ -23,6 +24,7 @@ import java.util.UUID;
 public class HubService {
 
     private final HubRepository hubRepository;
+    private final HubEvents hubEvents;
 
     @Transactional
     public HubResponse createHub(HubCreateRequest request) {
@@ -59,7 +61,7 @@ public class HubService {
     }
 
     @Transactional
-    public HubResponse updateHub(UUID hubId, HubUpdateRequest request) {
+    public HubResponse updateHub(UUID hubId, HubUpdateRequest request, UUID requesterId) {
         Hub hub = findHubById(hubId);
 
         if (request.getName() != null && !request.getName().equals(hub.getName())
@@ -81,6 +83,10 @@ public class HubService {
         }
 
         hub.update(request.getName(), request.getCapacity(), address);
+
+        // 변경 이벤트 발행 (Outbox) — company-service 등 구독자가 hubName 동기화에 사용
+        hubEvents.hubChanged(hub, requesterId);
+
         return HubResponse.from(hub);
     }
 
