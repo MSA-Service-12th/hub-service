@@ -35,7 +35,10 @@ public class HubInventoryController {
     }
 
     @GetMapping("/{hubInventoryId}")
-    public CommonResponse<HubInventoryResponse> getInventory(@PathVariable UUID hubInventoryId) {
+    public CommonResponse<HubInventoryResponse> getInventory(
+            @PathVariable UUID hubInventoryId,
+            @RequestHeader("X-User-Role") String userRole) {
+        checkMaster(userRole);
         return CommonResponse.success(hubInventoryService.getInventory(hubInventoryId), "허브 재고 상세 조회에 성공했습니다.");
     }
 

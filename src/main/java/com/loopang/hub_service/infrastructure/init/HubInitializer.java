@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Component
@@ -37,15 +38,31 @@ public class HubInitializer implements ApplicationRunner {
     };
 
     @Override
+    @Transactional
     public void run(ApplicationArguments args) {
-        if (hubRepository.findAll(org.springframework.data.domain.PageRequest.of(0, 1)).getTotalElements() > 0) {
-            log.info("[HubInitializer] 이미 허브 데이터 존재 — 스킵");
+        long existingCount = hubRepository.findAll(
+                org.springframework.data.domain.PageRequest.of(0, 1)).getTotalElements();
+
+        // 기존 데이터가 기대치(HUBS.length) 이상이면 스킵. 부분 시딩 상태면 아래 루프에서 이름 기준으로 개별 복구.
+        if (existingCount >= HUBS.length) {
+            log.info("[HubInitializer] 허브 데이터 {}건 존재 — 스킵", existingCount);
             return;
         }
 
-        log.info("[HubInitializer] 17개 허브 초기 데이터 등록 시작");
+        log.info("[HubInitializer] 허브 초기 데이터 시딩 시작 (기존 {}건, 기대 {}건)", existingCount, HUBS.length);
 
+        int inserted = 0;
+        int skipped = 0;
         for (Object[] hub : HUBS) {
+            String name = (String) hub[0];
+
+            // 이름 기준으로 개별 존재 여부를 확인해 멱등하게 삽입한다.
+            // 중간에 실패해 일부만 저장된 상태에서 재기동해도 나머지만 보충되도록.
+            if (hubRepository.existsByName(name)) {
+                skipped++;
+                continue;
+            }
+
             Address address = Address.builder()
                     .cityDo((String) hub[1])
                     .guGun((String) hub[2])
@@ -56,14 +73,15 @@ public class HubInitializer implements ApplicationRunner {
                     .build();
 
             Hub entity = Hub.builder()
-                    .name((String) hub[0])
+                    .name(name)
                     .capacity((Short) hub[7])
                     .address(address)
                     .build();
 
             hubRepository.save(entity);
+            inserted++;
         }
 
-        log.info("[HubInitializer] 17개 허브 등록 완료");
+        log.info("[HubInitializer] 시딩 완료 (신규 {}건, 기존 유지 {}건)", inserted, skipped);
     }
 }

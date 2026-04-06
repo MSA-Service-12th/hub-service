@@ -56,6 +56,10 @@ public class HubInventory extends BaseUserEntity {
         if (itemId == null) throw new IllegalArgumentException("itemId는 필수입니다.");
         if (companyId == null) throw new IllegalArgumentException("companyId는 필수입니다.");
         if (quantity < 0) throw new IllegalArgumentException("수량은 0 이상이어야 합니다.");
+        if (reservedQuantity < 0) throw new IllegalArgumentException("예약 수량은 0 이상이어야 합니다.");
+        if (reservedQuantity > quantity) {
+            throw new IllegalArgumentException("예약 수량은 전체 수량을 초과할 수 없습니다.");
+        }
 
         this.hubId = hubId;
         this.hubName = hubName;
@@ -69,12 +73,20 @@ public class HubInventory extends BaseUserEntity {
 
     public void updateQuantity(int quantity) {
         if (quantity < 0) throw new IllegalArgumentException("수량은 0 이상이어야 합니다.");
+        if (quantity < this.reservedQuantity) {
+            throw new IllegalArgumentException(
+                    "수량은 예약 수량(" + this.reservedQuantity + ") 이상이어야 합니다.");
+        }
         this.quantity = quantity;
     }
 
     public void reduceStock(int amount) {
         if (amount < 1) throw new IllegalArgumentException("차감 수량은 1 이상이어야 합니다.");
-        if (this.quantity < amount) throw new IllegalArgumentException("재고가 부족합니다. 현재 재고: " + this.quantity);
+        int available = this.quantity - this.reservedQuantity;
+        if (available < amount) {
+            throw new IllegalArgumentException(
+                    "재고가 부족합니다. 가용 재고(예약 제외): " + available);
+        }
         this.quantity -= amount;
     }
 
@@ -86,5 +98,31 @@ public class HubInventory extends BaseUserEntity {
     public void restoreStock(int amount) {
         if (amount < 1) throw new IllegalArgumentException("복원 수량은 1 이상이어야 합니다.");
         this.quantity += amount;
+    }
+
+    /**
+     * 주문 승인 시점에 예약 수량을 확보한다.
+     * 가용 재고(quantity - reservedQuantity)가 충분해야 예약 가능.
+     */
+    public void reserve(int amount) {
+        if (amount < 1) throw new IllegalArgumentException("예약 수량은 1 이상이어야 합니다.");
+        int available = this.quantity - this.reservedQuantity;
+        if (available < amount) {
+            throw new IllegalArgumentException(
+                    "예약 가능한 재고가 부족합니다. 가용 재고: " + available);
+        }
+        this.reservedQuantity += amount;
+    }
+
+    /**
+     * 주문 취소/실패 시 예약 수량을 해제한다.
+     */
+    public void releaseReserved(int amount) {
+        if (amount < 1) throw new IllegalArgumentException("해제 수량은 1 이상이어야 합니다.");
+        if (this.reservedQuantity < amount) {
+            throw new IllegalArgumentException(
+                    "해제 수량이 예약 수량(" + this.reservedQuantity + ")을 초과할 수 없습니다.");
+        }
+        this.reservedQuantity -= amount;
     }
 }

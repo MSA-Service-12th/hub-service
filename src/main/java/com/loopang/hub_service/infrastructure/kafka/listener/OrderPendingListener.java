@@ -14,6 +14,8 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.Optional;
 
@@ -47,7 +49,7 @@ public class OrderPendingListener {
                 log.warn("재고 없음 - hubId: {}, itemId: {}", payload.hubId(), payload.itemId());
                 hubEvents.stockUpdated(payload.orderId(), payload.itemId(), payload.hubId(),
                         payload.quantity(), 0, false);
-                ack.acknowledge();
+                acknowledgeAfterCommit(ack);
                 return;
             }
 
@@ -68,10 +70,29 @@ public class OrderPendingListener {
                         payload.quantity(), inventory.getQuantity(), false);
             }
 
-            ack.acknowledge();
+            acknowledgeAfterCommit(ack);
         } catch (Exception e) {
             log.error("주문 대기 메시지 처리 실패 - messageId: {}, error: {}", messageId, e.getMessage(), e);
             throw e;
+        }
+    }
+
+    /**
+     * 트랜잭션이 실제로 커밋된 뒤에 Kafka 오프셋을 ack한다.
+     * <p>트랜잭션 내부에서 직접 ack하면 커밋 전에 오프셋이 확정돼,
+     * 아웃박스 저장 실패나 낙관적 잠금 예외로 롤백될 때 메시지 손실이 발생한다.</p>
+     */
+    private void acknowledgeAfterCommit(Acknowledgment ack) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    ack.acknowledge();
+                }
+            });
+        } else {
+            // 트랜잭션 컨텍스트가 없는 경우(예: 테스트)엔 즉시 ack
+            ack.acknowledge();
         }
     }
 

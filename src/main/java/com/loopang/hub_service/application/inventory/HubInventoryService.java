@@ -1,5 +1,8 @@
 package com.loopang.hub_service.application.inventory;
 
+import com.loopang.hub_service.domain.hub.entity.Hub;
+import com.loopang.hub_service.domain.hub.exception.HubNotFoundException;
+import com.loopang.hub_service.domain.hub.repository.HubRepository;
 import com.loopang.hub_service.domain.inventory.entity.HubInventory;
 import com.loopang.hub_service.domain.inventory.exception.HubInventoryNotFoundException;
 import com.loopang.hub_service.domain.inventory.repository.HubInventoryRepository;
@@ -23,14 +26,20 @@ import java.util.UUID;
 public class HubInventoryService {
 
     private final HubInventoryRepository hubInventoryRepository;
+    private final HubRepository hubRepository;
     private final ItemProvider itemProvider;
 
     @Transactional
     public HubInventoryResponse create(HubInventoryCreateRequest request) {
+        // 허브 존재 여부 검증 + 이름 스냅샷 — 재고 엔티티의 hub_name 컬럼이 null로 저장되지 않도록.
+        Hub hub = hubRepository.findById(request.getHubId())
+                .orElseThrow(() -> new HubNotFoundException(request.getHubId()));
+
         ItemData itemData = itemProvider.getItem(request.getItemId());
 
         HubInventory inventory = HubInventory.builder()
-                .hubId(request.getHubId())
+                .hubId(hub.getId())
+                .hubName(hub.getName())
                 .itemId(itemData.itemId())
                 .itemName(itemData.itemName())
                 .quantity(request.getQuantity())
