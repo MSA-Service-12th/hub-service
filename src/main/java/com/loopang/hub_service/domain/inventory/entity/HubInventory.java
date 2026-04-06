@@ -92,12 +92,24 @@ public class HubInventory extends BaseUserEntity {
 
     public void addStock(int amount) {
         if (amount < 1) throw new IllegalArgumentException("추가 수량은 1 이상이어야 합니다.");
-        this.quantity += amount;
+        this.quantity = safeAdd(this.quantity, amount, "추가");
     }
 
     public void restoreStock(int amount) {
         if (amount < 1) throw new IllegalArgumentException("복원 수량은 1 이상이어야 합니다.");
-        this.quantity += amount;
+        this.quantity = safeAdd(this.quantity, amount, "복원");
+    }
+
+    /**
+     * 정수 오버플로우 방어. 현실적으로는 도달 불가능하지만 도메인 불변식이
+     * 임의 입력에 의해 깨지지 않도록 Math.addExact로 방어한다.
+     */
+    private int safeAdd(int current, int delta, String action) {
+        try {
+            return Math.addExact(current, delta);
+        } catch (ArithmeticException e) {
+            throw new IllegalArgumentException(action + " 수량이 허용 범위를 초과했습니다.", e);
+        }
     }
 
     /**
