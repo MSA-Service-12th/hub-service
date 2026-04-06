@@ -48,10 +48,11 @@ public class HubController {
     @PutMapping("/{hubId}")
     public CommonResponse<HubResponse> updateHub(
             @PathVariable UUID hubId,
+            @RequestHeader("X-User-UUID") UUID requesterId,
             @RequestHeader("X-User-Role") String userRole,
             @Valid @RequestBody HubUpdateRequest request) {
         checkMasterOrHub(userRole);
-        return CommonResponse.success(hubService.updateHub(hubId, request), "허브가 수정되었습니다.");
+        return CommonResponse.success(hubService.updateHub(hubId, request, requesterId), "허브가 수정되었습니다.");
     }
 
     @DeleteMapping("/{hubId}")

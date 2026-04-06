@@ -23,13 +23,13 @@ public class HubEventsImpl implements HubEvents {
     private final HubTopicProperties properties;
 
     @Override
-    public void hubChanged(Hub hub) {
+    public void hubChanged(Hub hub, UUID updatedBy) {
         OutboxEvent event = OutboxEvent.withCorrelation(
                 getTraceId(),
                 "HUB",
                 hub.getId(),
                 properties.updated(),
-                HubChangedPayload.from(hub)
+                HubChangedPayload.from(hub, updatedBy)
         );
         Events.trigger(event);
     }

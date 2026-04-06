@@ -42,7 +42,7 @@ topics:
   order:
     pending: ${TOPICS_ORDER_PENDING:prod-order-pending}
   hub:
-    updated: ${TOPICS_HUB_UPDATED:hub-updated-topic}
+    updated: ${TOPICS_HUB_UPDATED:hub-update-topic}
     stock-updated: ${TOPICS_HUB_STOCK_UPDATED:prod-hub-stock-updated}
 
 management:
