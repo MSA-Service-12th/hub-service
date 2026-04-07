@@ -45,3 +45,6 @@ out/
 gradle.properties
 CLAUDE.md
 ignoredocs/
+
+# Kafka SSL truststore
+src/main/resources/ssl/
