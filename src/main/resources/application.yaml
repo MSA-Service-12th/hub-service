@@ -25,6 +25,37 @@ spring:
         show_sql: true
         format_sql: true
 
+  kafka:
+    bootstrap-servers: ${BOOTSTRAP_SERVERS}
+    properties:
+      security.protocol: SSL
+      ssl.endpoint.identification.algorithm: ""
+    ssl:
+      trust-store-location: classpath:ssl/kafka.server.truststore.jks
+      trust-store-password: ${TRUST_STORE_PASSWORD}
+    producer:
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        enable.idempotence: true
+        max.block.ms: 10000
+        max.in.flight.requests.per.connection: 5
+        retries: 3
+        delivery.timeout.ms: 120000
+    consumer:
+      group-id: hub-group
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+      properties:
+        session.timeout.ms: 30000
+        max.poll.interval.ms: 300000
+    listener:
+      ack-mode: manual
+      concurrency: 3
+
 eureka:
   instance:
     prefer-ip-address: true
